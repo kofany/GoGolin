@@ -1,0 +1,8 @@
+# GoGolin v 0.1 config file
+ server = 192.67.208.2
+ port = 6667
+ owner = k@okkin.fi
+ secretChan = #golang
+ ident = k
+ botnick = GoGolin
+ realname = Taki Sobie Gosc
