@@ -1,8 +1,8 @@
 # GoGolin v 0.1 config file
- server = 192.67.208.2
+ server = irc.serv.com
  port = 6667
- owner = k@okkin.fi
- secretChan = #golang
- ident = k
- botnick = GoGolin
- realname = Taki Sobie Gosc
+ owner = ident@host
+ secretChan = #your_secret_chan
+ ident = botident
+ botnick = botnick
+ realname = Bot Real Name
