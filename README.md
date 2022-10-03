@@ -1,2 +1,2 @@
 # GoGolin
-Simple Golang irc bot reacting to !commands
+Simplw irc bot reacting to !commands and written in Go
