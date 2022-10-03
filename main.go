@@ -41,7 +41,7 @@ func main() {
 	var mynick string = ircobj.GetNick()
 
 	// ircobj.AddCallback("JOIN", func(e *irc.Event) {
-	//	ircobj.Privmsg(secretChan, "Hello! I am a friendly IRC bot who will echo everything you say.")
+	//	ircobj.Privmsg(secretChan, "text")
 	// })
 
 	ircobj.AddCallback("PRIVMSG", func(e *irc.Event) {
