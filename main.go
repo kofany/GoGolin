@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -9,11 +10,13 @@ import (
 	"time"
 
 	irc "github.com/thoj/go-ircevent"
+	"golang.org/x/exp/slices"
 )
 
 type Config map[string]string
 
 func main() {
+
 	//config
 	config, err := ReadConfig(`config.txt`)
 	if err != nil {
@@ -23,10 +26,9 @@ func main() {
 	secretChan := config["secretChan"]
 	server := config["server"]
 	port := config["port"]
-	owner := config["owner"]
+	//owner := config["owner"]
 	botnick := config["botnick"]
 	ident := config["ident"]
-	owner = ("!" + owner)
 	ircobj := irc.IRC(botnick, ident)
 	ircobj.RealName = config["realname"]
 	errCon := ircobj.Connect(server + ":" + port)
@@ -41,16 +43,22 @@ func main() {
 	var mynick string = ircobj.GetNick()
 
 	// ircobj.AddCallback("JOIN", func(e *irc.Event) {
-	//	ircobj.Privmsg(secretChan, "text")
+	//	ircobj.Privmsg(secretChan, "Hello! I am a friendly IRC bot who will echo everything you say.")
 	// })
-
 	ircobj.AddCallback("PRIVMSG", func(e *irc.Event) {
+		//owner
+		lines, err := readLines("owner.txt")
+		if err != nil {
+			return
+		}
+
+		owner := lines
 		var result string = e.Message()
-		var isOwner string = e.Source
+		var isOwner string = strings.TrimPrefix(e.Source, e.Nick)
 		var sliceChan []string = strings.Split(e.Raw, " ")
 		var curChan string = sliceChan[2]
 		//check if it is a owner
-		if strings.Contains(isOwner, owner) {
+		if slices.Contains(owner, isOwner) {
 			// !op command
 			if strings.Contains(result, "!op ") {
 
@@ -120,11 +128,6 @@ func main() {
 				ircobj.Quit()
 				//os.Exit(1)
 			}
-			// !raw command
-			if strings.Contains(result, "!raw") {
-				ircobj.Privmsg(e.Nick, e.Raw)
-				ircobj.Privmsg(e.Nick, mynick)
-			}
 			// !s command
 			if strings.Contains(result, "!say ") {
 				result = strings.TrimPrefix(result, "!say ")
@@ -137,6 +140,44 @@ func main() {
 				result := strings.TrimPrefix(value, target)
 				ircobj.Privmsg(target, result)
 
+			}
+			// !+owner
+			if strings.Contains(result, "!+owner ") {
+				result := strings.TrimPrefix(result, "!+owner ")
+				if slices.Contains(owner, result) {
+					ircobj.Notice(e.Nick, "Sorry "+result+" exists on my list - not adding")
+				} else {
+					f, err := os.OpenFile("owner.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+					if err != nil {
+						ircobj.Notice(e.Nick, "Something wrong with owner.text")
+					}
+					defer f.Close()
+					if _, err := f.WriteString("\n" + result); err != nil {
+						ircobj.Notice(e.Nick, "Something wrong with owner.text")
+					}
+				}
+			}
+			// !-owner
+			if strings.Contains(result, "!-owner ") {
+				result := strings.TrimPrefix(result, "!-owner ")
+				if slices.Contains(owner, result) {
+
+					lines, err := readLines("owner.txt")
+					if err != nil {
+						return
+					}
+					for i, v := range lines {
+						if v == result {
+							lines = append(lines[:i], lines[i+1:]...)
+						}
+					}
+					lines = delete_empty(lines)
+					if err := writeLines(lines, "owner.txt"); err != nil {
+						return
+					}
+				} else {
+					ircobj.Notice(e.Nick, "Sorry "+result+" not exists on my list")
+				}
 			}
 			// !help command
 			if strings.Contains(result, "!help") && strings.Contains(e.Raw, mynick) {
@@ -158,10 +199,14 @@ func main() {
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!die quit_text - killing bot - !die Im going... ")
 				ircobj.Privmsg(e.Nick, "!msg nick text - send priv msg to nick")
+				time.Sleep(1 * time.Second)
+				ircobj.Privmsg(e.Nick, "!+owner add owner to bot")
+				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
 			}
 		}
 	})
 	ircobj.Loop()
+
 }
 
 func ReadConfig(filename string) (Config, error) {
@@ -221,4 +266,55 @@ func firstWords(value string, count int) string {
 	}
 	// Return the entire string.
 	return value
+}
+func readLines(path string) (lines []string, err error) {
+	var (
+		file   *os.File
+		part   []byte
+		prefix bool
+	)
+	if file, err = os.Open(path); err != nil {
+		return
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	buffer := bytes.NewBuffer(make([]byte, 0))
+	for {
+		if part, prefix, err = reader.ReadLine(); err != nil {
+			break
+		}
+		buffer.Write(part)
+		if !prefix {
+			lines = append(lines, buffer.String())
+			buffer.Reset()
+		}
+	}
+	if err == io.EOF {
+		err = nil
+	}
+	return
+}
+
+func writeLines(lines []string, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for _, line := range lines {
+		fmt.Fprintln(w, line)
+	}
+	return w.Flush()
+}
+func delete_empty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }
