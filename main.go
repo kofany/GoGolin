@@ -217,7 +217,7 @@ func main() {
 				ircobj.Privmsg(e.Nick, "!+owner add owner to bot")
 				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
 				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
-				ircobj.Privmsg(e.Nick, "!owners - bot says hallo to You")
+				ircobj.Privmsg(e.Nick, "!owners - notice owner list")
 
 			}
 		}
