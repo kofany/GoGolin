@@ -31,7 +31,7 @@ func main() {
 	ident := config["ident"]
 	ircobj := irc.IRC(botnick, ident)
 	ircobj.RealName = config["realname"]
-	ircobj.Version = "GoGolin v 0.2 - irc client in Go"
+	ircobj.Version = "GoGolin v 0.3 - irc client in Go"
 	errCon := ircobj.Connect(server + ":" + port)
 	if errCon != nil {
 		fmt.Println("Failed connecting")
@@ -43,9 +43,23 @@ func main() {
 	//what is my bot nick on irc
 	var mynick string = ircobj.GetNick()
 
-	// ircobj.AddCallback("JOIN", func(e *irc.Event) {
-	//	ircobj.Privmsg(secretChan, "Hello! I am a friendly IRC bot who will echo everything you say.")
-	// })
+	ircobj.AddCallback("JOIN", func(e *irc.Event) {
+		//owner
+		lines, err := readLines("owner.txt")
+		if err != nil {
+			return
+		}
+		owner := lines
+		var isOwner string = strings.TrimPrefix(e.Source, e.Nick)
+		var sliceChan []string = strings.Split(e.Raw, " ")
+		var curChan string = sliceChan[2]
+		curChan = strings.TrimPrefix(curChan, ":")
+		if slices.Contains(owner, isOwner) {
+			var docommand string = ("MODE " + curChan + " +o " + e.Nick)
+			ircobj.SendRawf(docommand)
+
+		}
+	})
 	ircobj.AddCallback("PRIVMSG", func(e *irc.Event) {
 		//owner
 		lines, err := readLines("owner.txt")
@@ -217,7 +231,7 @@ func main() {
 				ircobj.Privmsg(e.Nick, "!+owner add owner to bot")
 				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
 				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
-				ircobj.Privmsg(e.Nick, "!owners - notice owner list")
+				ircobj.Privmsg(e.Nick, "!owners - notice owners list")
 
 			}
 		}
