@@ -31,6 +31,7 @@ func main() {
 	ident := config["ident"]
 	ircobj := irc.IRC(botnick, ident)
 	ircobj.RealName = config["realname"]
+	ircobj.Version = "GoGolin v 0.2 - irc client in Go"
 	errCon := ircobj.Connect(server + ":" + port)
 	if errCon != nil {
 		fmt.Println("Failed connecting")
@@ -133,6 +134,10 @@ func main() {
 				result = strings.TrimPrefix(result, "!say ")
 				ircobj.Privmsg(curChan, result)
 			}
+			// !a command
+			if strings.Contains(result, "!a ") {
+				ircobj.Notice(e.Nick, "Welcom my master!")
+			}
 			// !msg command
 			if strings.Contains(result, "!msg ") {
 				value := strings.TrimPrefix(result, "!msg ")
@@ -179,6 +184,15 @@ func main() {
 					ircobj.Notice(e.Nick, "Sorry "+result+" not exists on my list")
 				}
 			}
+			if strings.Contains(result, "!owners") {
+				lines, err := readLines("owner.txt")
+				if err != nil {
+					return
+				}
+				for _, s := range lines {
+					ircobj.Notice(e.Nick, "Owner: "+s)
+				}
+			}
 			// !help command
 			if strings.Contains(result, "!help") && strings.Contains(e.Raw, mynick) {
 				ircobj.Privmsg(e.Nick, "My Commands: ")
@@ -202,6 +216,9 @@ func main() {
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!+owner add owner to bot")
 				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
+				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
+				ircobj.Privmsg(e.Nick, "!owners - bot says hallo to You")
+
 			}
 		}
 	})
