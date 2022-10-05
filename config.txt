@@ -1,7 +1,7 @@
-# GoGolin v 0.1 config file
- server = 192.67.208.2
+# GoGolin v 0.5 config file
+ server = irc.server.com
  port = 6667
- secretChan = #golang
- ident = k
- botnick = GoGolin
- realname = Taki Sobie Gosc
+ secretChan = #secretChannel
+ ident = botident
+ botnick = botnick
+ realname = botrealname
