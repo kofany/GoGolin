@@ -1,1 +1,1 @@
-#tahio !k@okkin.fi
+#channel !ident@host
