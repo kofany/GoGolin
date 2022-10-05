@@ -42,22 +42,42 @@ func main() {
 	})
 	//what is my bot nick on irc
 	var mynick string = ircobj.GetNick()
-
+	//autoop list
 	ircobj.AddCallback("JOIN", func(e *irc.Event) {
 		//owner
-		lines, err := readLines("owner.txt")
+		lines, err := readLines("aop.txt")
 		if err != nil {
 			return
 		}
-		owner := lines
-		var isOwner string = strings.TrimPrefix(e.Source, e.Nick)
+		isOp := lines
+		var toOp string = strings.TrimPrefix(e.Source, e.Nick)
 		var sliceChan []string = strings.Split(e.Raw, " ")
 		var curChan string = sliceChan[2]
 		curChan = strings.TrimPrefix(curChan, ":")
-		if slices.Contains(owner, isOwner) {
+		toOp = (curChan + " " + toOp)
+		if slices.Contains(isOp, toOp) {
 			var docommand string = ("MODE " + curChan + " +o " + e.Nick)
 			ircobj.SendRawf(docommand)
+		}
+	})
 
+	//shit list
+	ircobj.AddCallback("JOIN", func(e *irc.Event) {
+		//owner
+		lines, err := readLines("shit.txt")
+		if err != nil {
+			return
+		}
+		isShit := lines
+		var toShit string = strings.TrimPrefix(e.Source, e.Nick)
+		var sliceChan []string = strings.Split(e.Raw, " ")
+		var curChan string = sliceChan[2]
+		curChan = strings.TrimPrefix(curChan, ":")
+		toShitList := (curChan + " " + toShit)
+		if slices.Contains(isShit, toShitList) {
+			var docommand string = ("MODE " + curChan + " +b " + "*" + toShit)
+			ircobj.SendRawf(docommand)
+			ircobj.Kick(e.Nick, curChan, "You are on my shitlist! Bye Bye")
 		}
 	})
 	ircobj.AddCallback("PRIVMSG", func(e *irc.Event) {
@@ -198,6 +218,7 @@ func main() {
 					ircobj.Notice(e.Nick, "Sorry "+result+" not exists on my list")
 				}
 			}
+			//owners
 			if strings.Contains(result, "!owners") {
 				lines, err := readLines("owner.txt")
 				if err != nil {
@@ -205,6 +226,125 @@ func main() {
 				}
 				for _, s := range lines {
 					ircobj.Notice(e.Nick, "Owner: "+s)
+				}
+			}
+			//!+aop
+			if strings.Contains(result, "!+aop ") {
+				lines, err := readLines("aop.txt")
+				if err != nil {
+					return
+				}
+				isOp := lines
+
+				result := strings.TrimPrefix(result, "!+aop ")
+				if slices.Contains(isOp, result) {
+					ircobj.Notice(e.Nick, "Sorry "+result+" exists on my list - not adding")
+				} else {
+					f, err := os.OpenFile("aop.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+					if err != nil {
+						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
+					}
+					defer f.Close()
+					if _, err := f.WriteString("\n" + result); err != nil {
+						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
+					}
+				}
+			}
+			//!-aop
+			if strings.Contains(result, "!-aop ") {
+				lines, err := readLines("aop.txt")
+				if err != nil {
+					return
+				}
+				isOp := lines
+				result := strings.TrimPrefix(result, "!-aop ")
+				if slices.Contains(isOp, result) {
+
+					lines, err := readLines("aop.txt")
+					if err != nil {
+						return
+					}
+					for i, v := range lines {
+						if v == result {
+							lines = append(lines[:i], lines[i+1:]...)
+						}
+					}
+					lines = delete_empty(lines)
+					if err := writeLines(lines, "aop.txt"); err != nil {
+						return
+					}
+				} else {
+					ircobj.Notice(e.Nick, "Sorry "+result+" not exists on my list")
+				}
+			}
+			//!aops
+			if strings.Contains(result, "!aops") {
+				lines, err := readLines("aop.txt")
+				if err != nil {
+					return
+				}
+				for _, s := range lines {
+					ircobj.Notice(e.Nick, "Autoop: "+s)
+				}
+			}
+
+			//!+shit
+			if strings.Contains(result, "!+shit ") {
+				lines, err := readLines("shit.txt")
+				if err != nil {
+					return
+				}
+				isShit := lines
+
+				result := strings.TrimPrefix(result, "!+shit ")
+				if slices.Contains(isShit, result) {
+					ircobj.Notice(e.Nick, "Sorry "+result+" exists on my list - not adding")
+				} else {
+					f, err := os.OpenFile("shit.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+					if err != nil {
+						ircobj.Notice(e.Nick, "Something wrong with shit.txt")
+					}
+					defer f.Close()
+					if _, err := f.WriteString("\n" + result); err != nil {
+						ircobj.Notice(e.Nick, "Something wrong with shit.txt")
+					}
+				}
+			}
+			//!-shit
+			if strings.Contains(result, "!-shit ") {
+				lines, err := readLines("shit.txt")
+				if err != nil {
+					return
+				}
+				isShit := lines
+				result := strings.TrimPrefix(result, "!-shit ")
+				if slices.Contains(isShit, result) {
+
+					lines, err := readLines("shit.txt")
+					if err != nil {
+						return
+					}
+					for i, v := range lines {
+						if v == result {
+							lines = append(lines[:i], lines[i+1:]...)
+						}
+					}
+					lines = delete_empty(lines)
+					if err := writeLines(lines, "shit.txt"); err != nil {
+						return
+					}
+				} else {
+					ircobj.Notice(e.Nick, "Sorry "+result+" not exists on my list")
+				}
+			}
+			//!shits
+			if strings.Contains(result, "!shits") {
+				lines, err := readLines("shit.txt")
+				if err != nil {
+					return
+				}
+				for _, s := range lines {
+					ircobj.Notice(e.Nick, "Shit: "+s)
 				}
 			}
 			// !help command
@@ -232,6 +372,12 @@ func main() {
 				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
 				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
 				ircobj.Privmsg(e.Nick, "!owners - notice owners list")
+				ircobj.Privmsg(e.Nick, "!+aop -add autoop: !+aop #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!-aop -del autoop: !-aop #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!aops - aops list")
+				ircobj.Privmsg(e.Nick, "!+shit -add shit: !+aop #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!-shit -del shit: !-aop #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!shits - shit list")
 
 			}
 		}
