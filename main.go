@@ -60,7 +60,6 @@ func main() {
 			ircobj.SendRawf(docommand)
 		}
 	})
-
 	//shit list
 	ircobj.AddCallback("JOIN", func(e *irc.Event) {
 		//owner
@@ -95,16 +94,16 @@ func main() {
 		//check if it is a owner
 		if slices.Contains(owner, isOwner) {
 			// !op command
-			if strings.Contains(result, "!op ") {
+			if strings.HasPrefix(result, "!+o ") {
 
-				result = strings.TrimPrefix(result, "!op ")
+				result = strings.TrimPrefix(result, "!+o ")
 				var docommand string = ("MODE " + curChan + " +ooo " + result)
 				ircobj.SendRawf(docommand)
 
 			}
 			// !6 command op x 6
 
-			if strings.Contains(result, "!6 ") {
+			if strings.HasPrefix(result, "!6 ") {
 
 				result = strings.TrimPrefix(result, "!6 ")
 				var sliceOP []string = strings.Split(result, " ")
@@ -116,64 +115,64 @@ func main() {
 
 			}
 			// !deop command
-			if strings.Contains(result, "!dop ") {
-				result = strings.TrimPrefix(result, "!dop ")
+			if strings.HasPrefix(result, "!-o ") {
+				result = strings.TrimPrefix(result, "!-o ")
 				var docommand string = ("MODE " + curChan + " -ooo " + result)
 				ircobj.SendRawf(docommand)
 			}
 			// !+v command
-			if strings.Contains(result, "!+v ") {
+			if strings.HasPrefix(result, "!+v ") {
 				result = strings.TrimPrefix(result, "!+v ")
 				var docommand string = ("MODE " + curChan + " +vvv " + result)
 				ircobj.SendRawf(docommand)
 			}
 			// !-v command
-			if strings.Contains(result, "!-v ") {
+			if strings.HasPrefix(result, "!-v ") {
 				result = strings.TrimPrefix(result, "!-v ")
 				var docommand string = ("MODE " + curChan + " -vvv " + result)
 				ircobj.SendRawf(docommand)
 
 			}
 			// !+b command
-			if strings.Contains(result, "!+b ") {
+			if strings.HasPrefix(result, "!+b ") {
 				result = strings.TrimPrefix(result, "!+b ")
 				var docommand string = ("MODE " + curChan + " +b " + result)
 				ircobj.SendRawf(docommand)
 			}
 			// !-b command
-			if strings.Contains(result, "!-b ") {
+			if strings.HasPrefix(result, "!-b ") {
 				result = strings.TrimPrefix(result, "!-b ")
 				var docommand string = ("MODE " + curChan + " -b " + result)
 				ircobj.SendRawf(docommand)
 			}
 			// !j command
-			if strings.Contains(result, "!j ") {
+			if strings.HasPrefix(result, "!j ") {
 				result = strings.Trim(result, "!j ")
 				ircobj.Join(result)
 			}
 			// !p command
-			if strings.Contains(result, "!p ") {
+			if strings.HasPrefix(result, "!p ") {
 				result = strings.TrimPrefix(result, "!p ")
 				ircobj.Part(result)
 			}
 			// !die command
-			if strings.Contains(result, "!die ") {
+			if strings.HasPrefix(result, "!die ") {
 				result = strings.TrimPrefix(result, "!die ")
 				ircobj.QuitMessage = result
 				ircobj.Quit()
 				//os.Exit(1)
 			}
 			// !s command
-			if strings.Contains(result, "!say ") {
-				result = strings.TrimPrefix(result, "!say ")
+			if strings.HasPrefix(result, "!s ") {
+				result = strings.TrimPrefix(result, "!s ")
 				ircobj.Privmsg(curChan, result)
 			}
 			// !a command
-			if strings.Contains(result, "!a ") {
-				ircobj.Notice(e.Nick, "Welcom my master!")
+			if strings.HasPrefix(result, "!a") {
+				ircobj.Notice(e.Nick, "Welcome my master!")
 			}
 			// !msg command
-			if strings.Contains(result, "!msg ") {
+			if strings.HasPrefix(result, "!msg ") {
 				value := strings.TrimPrefix(result, "!msg ")
 				target := firstWords(value, 1)
 				result := strings.TrimPrefix(value, target)
@@ -181,7 +180,7 @@ func main() {
 
 			}
 			// !+owner
-			if strings.Contains(result, "!+owner ") {
+			if strings.HasPrefix(result, "!+owner ") {
 				result := strings.TrimPrefix(result, "!+owner ")
 				if slices.Contains(owner, result) {
 					ircobj.Notice(e.Nick, "Sorry "+result+" exists on my list - not adding")
@@ -197,7 +196,7 @@ func main() {
 				}
 			}
 			// !-owner
-			if strings.Contains(result, "!-owner ") {
+			if strings.HasPrefix(result, "!-owner ") {
 				result := strings.TrimPrefix(result, "!-owner ")
 				if slices.Contains(owner, result) {
 
@@ -219,7 +218,7 @@ func main() {
 				}
 			}
 			//owners
-			if strings.Contains(result, "!owners") {
+			if strings.HasPrefix(result, "!owners") {
 				lines, err := readLines("owner.txt")
 				if err != nil {
 					return
@@ -229,7 +228,7 @@ func main() {
 				}
 			}
 			//!+aop
-			if strings.Contains(result, "!+aop ") {
+			if strings.HasPrefix(result, "!+aop ") {
 				lines, err := readLines("aop.txt")
 				if err != nil {
 					return
@@ -251,7 +250,7 @@ func main() {
 				}
 			}
 			//!-aop
-			if strings.Contains(result, "!-aop ") {
+			if strings.HasPrefix(result, "!-aop ") {
 				lines, err := readLines("aop.txt")
 				if err != nil {
 					return
@@ -278,7 +277,7 @@ func main() {
 				}
 			}
 			//!aops
-			if strings.Contains(result, "!aops") {
+			if strings.HasPrefix(result, "!aops") {
 				lines, err := readLines("aop.txt")
 				if err != nil {
 					return
@@ -289,7 +288,7 @@ func main() {
 			}
 
 			//!+shit
-			if strings.Contains(result, "!+shit ") {
+			if strings.HasPrefix(result, "!+shit ") {
 				lines, err := readLines("shit.txt")
 				if err != nil {
 					return
@@ -311,7 +310,7 @@ func main() {
 				}
 			}
 			//!-shit
-			if strings.Contains(result, "!-shit ") {
+			if strings.HasPrefix(result, "!-shit ") {
 				lines, err := readLines("shit.txt")
 				if err != nil {
 					return
@@ -338,7 +337,7 @@ func main() {
 				}
 			}
 			//!shits
-			if strings.Contains(result, "!shits") {
+			if strings.HasPrefix(result, "!shits") {
 				lines, err := readLines("shit.txt")
 				if err != nil {
 					return
@@ -348,13 +347,13 @@ func main() {
 				}
 			}
 			// !help command
-			if strings.Contains(result, "!help") && strings.Contains(e.Raw, mynick) {
+			if strings.HasPrefix(result, "!help") && strings.Contains(e.Raw, mynick) {
 				ircobj.Privmsg(e.Nick, "My Commands: ")
 				time.Sleep(1 * time.Second)
-				ircobj.Privmsg(e.Nick, "!op - gives op up to 3 nicks - !op nick1 nick2 nick3")
+				ircobj.Privmsg(e.Nick, "!+o - gives op up to 3 nicks - !+o nick1 nick2 nick3")
 				ircobj.Privmsg(e.Nick, "!6 - gives op up to 6 nicks - !6 nick1 nick2 nick3 nick4 nick5 nick6")
 				time.Sleep(1 * time.Second)
-				ircobj.Privmsg(e.Nick, "!dop - takes op up to 3 nicks - !dop nick1 nick2 nick3")
+				ircobj.Privmsg(e.Nick, "!-o - takes op up to 3 nicks - !-o nick1 nick2 nick3")
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!+v - gives voice up to 3 nicks - !+v nick1 nick2 nick3")
 				ircobj.Privmsg(e.Nick, "!-v - takes voice up to 3 nicks - !-v nick1 nick2 nick3")
@@ -364,19 +363,20 @@ func main() {
 				ircobj.Privmsg(e.Nick, "!j #channel - joining #channel")
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!p #channel - part channel ")
-				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!die quit_text - killing bot - !die Im going... ")
 				ircobj.Privmsg(e.Nick, "!msg nick text - send priv msg to nick")
+				ircobj.Privmsg(e.Nick, "!s text - say text to current channel")
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!+owner add owner to bot")
 				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
 				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
 				ircobj.Privmsg(e.Nick, "!owners - notice owners list")
+				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!+aop -add autoop: !+aop #channel !ident@host")
 				ircobj.Privmsg(e.Nick, "!-aop -del autoop: !-aop #channel !ident@host")
 				ircobj.Privmsg(e.Nick, "!aops - aops list")
-				ircobj.Privmsg(e.Nick, "!+shit -add shit: !+aop #channel !ident@host")
-				ircobj.Privmsg(e.Nick, "!-shit -del shit: !-aop #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!+shit -add shit: !+shit #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!-shit -del shit: !-shit #channel !ident@host")
 				ircobj.Privmsg(e.Nick, "!shits - shit list")
 
 			}
