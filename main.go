@@ -265,6 +265,7 @@ func main() {
 				if err := writeLines(lines2, "shit.txt"); err != nil {
 					return
 				}
+			}
 			//!-aop
 			if strings.HasPrefix(result, "!-aop ") {
 				lines, err := readLines("aop.txt")
