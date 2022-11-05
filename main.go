@@ -257,11 +257,14 @@ func main() {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 				}
-				lines = delete_empty(lines)
-				if err := writeLines(lines, "aop.txt"); err != nil {
+				lines2, err := readLines("shit.txt")
+				if err != nil {
 					return
 				}
-			}
+				lines2 = delete_empty(lines2)
+				if err := writeLines(lines2, "shit.txt"); err != nil {
+					return
+				}
 			//!-aop
 			if strings.HasPrefix(result, "!-aop ") {
 				lines, err := readLines("aop.txt")
