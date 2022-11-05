@@ -93,6 +93,7 @@ func main() {
 		owner := lines
 		var result string = e.Message()
 		var isOwner string = strings.TrimPrefix(e.Source, e.Nick)
+		isOwner = ("*" + isOwner)
 		var sliceChan []string = strings.Split(e.Raw, " ")
 		var curChan string = sliceChan[2]
 		//check if it is a owner
@@ -524,6 +525,7 @@ func delete_empty(s []string) []string {
 	}
 	return r
 }
+
 // Split function for future use.
 //func Split(r rune) bool {
 //	return r == '!' || r == '@'
