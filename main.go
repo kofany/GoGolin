@@ -253,7 +253,7 @@ func main() {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 					defer f.Close()
-					if _, err := f.WriteString("\n" + result); err != nil {
+					if _, err := f.WriteString(result + "\n"); err != nil {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 				}
