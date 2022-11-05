@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	irc "github.com/thoj/go-ircevent"
+	irc "github.com/kofany/go-ircevent"
 	"golang.org/x/exp/slices"
 )
 
@@ -26,12 +26,13 @@ func main() {
 	secretChan := config["secretChan"]
 	server := config["server"]
 	port := config["port"]
-	//owner := config["owner"]
 	botnick := config["botnick"]
 	ident := config["ident"]
-	ircobj := irc.IRC(botnick, ident)
+	myhost := config["myhost"]
+	ircobj := irc.IRC(botnick, ident, myhost)
+	ircobj.PingFreq = 1 * time.Minute
 	ircobj.RealName = config["realname"]
-	ircobj.Version = "GoGolin v 0.3 - irc client in Go"
+	ircobj.Version = "GoGolin v 1.0 - irc client in Go"
 	errCon := ircobj.Connect(server + ":" + port)
 	if errCon != nil {
 		fmt.Println("Failed connecting")
@@ -40,11 +41,11 @@ func main() {
 	ircobj.AddCallback("001", func(e *irc.Event) {
 		ircobj.Join(secretChan)
 	})
+
 	//what is my bot nick on irc
 	var mynick string = ircobj.GetNick()
 	//autoop list
 	ircobj.AddCallback("JOIN", func(e *irc.Event) {
-		//owner
 		lines, err := readLines("aop.txt")
 		if err != nil {
 			return
@@ -54,28 +55,32 @@ func main() {
 		var sliceChan []string = strings.Split(e.Raw, " ")
 		var curChan string = sliceChan[2]
 		curChan = strings.TrimPrefix(curChan, ":")
-		toOp = (curChan + " " + toOp)
-		if slices.Contains(isOp, toOp) {
-			var docommand string = ("MODE " + curChan + " +o " + e.Nick)
-			ircobj.SendRawf(docommand)
+		tooOp := (curChan + " *" + toOp)
+		if slices.Contains(isOp, tooOp) {
+			ircobj.Mode(curChan, " +o "+e.Nick)
 		}
 	})
 	//shit list
 	ircobj.AddCallback("JOIN", func(e *irc.Event) {
-		//owner
 		lines, err := readLines("shit.txt")
 		if err != nil {
 			return
 		}
-		isShit := lines
-		var toShit string = strings.TrimPrefix(e.Source, e.Nick)
 		var sliceChan []string = strings.Split(e.Raw, " ")
 		var curChan string = sliceChan[2]
 		curChan = strings.TrimPrefix(curChan, ":")
-		toShitList := (curChan + " " + toShit)
+		isShit := lines
+		var toShit string = strings.TrimPrefix(e.Source, e.Nick)
+		if strings.Contains(toShit, "~") {
+			toShit = strings.TrimPrefix(toShit, "!~")
+			toShit = ("!" + toShit)
+		}
+		toShitList := (curChan + " *" + toShit)
 		if slices.Contains(isShit, toShitList) {
-			var docommand string = ("MODE " + curChan + " +b " + "*" + toShit)
-			ircobj.SendRawf(docommand)
+			if strings.Contains(e.User, "~") {
+				e.User = "*"
+			}
+			ircobj.Mode(curChan, "+b "+"*!"+e.User+"@"+e.Host)
 			ircobj.Kick(e.Nick, curChan, "You are on my shitlist! Bye Bye")
 		}
 	})
@@ -85,7 +90,6 @@ func main() {
 		if err != nil {
 			return
 		}
-
 		owner := lines
 		var result string = e.Message()
 		var isOwner string = strings.TrimPrefix(e.Source, e.Nick)
@@ -109,7 +113,6 @@ func main() {
 				var sliceOP []string = strings.Split(result, " ")
 				var op1 string = ("MODE " + curChan + " +ooo " + sliceOP[0] + " " + sliceOP[1] + " " + sliceOP[2])
 				var op2 string = ("MODE " + curChan + " +ooo " + sliceOP[3] + " " + sliceOP[4] + " " + sliceOP[5])
-
 				ircobj.SendRawf(op1)
 				ircobj.SendRawf(op2)
 
@@ -167,6 +170,11 @@ func main() {
 				result = strings.TrimPrefix(result, "!s ")
 				ircobj.Privmsg(curChan, result)
 			}
+			// !k command
+			if strings.HasPrefix(result, "!k ") {
+				result = strings.TrimPrefix(result, "!k ")
+				ircobj.Kick(result, curChan, "Not welcome here!")
+			}
 			// !a command
 			if strings.HasPrefix(result, "!a") {
 				ircobj.Notice(e.Nick, "Welcome my master!")
@@ -177,7 +185,6 @@ func main() {
 				target := firstWords(value, 1)
 				result := strings.TrimPrefix(value, target)
 				ircobj.Privmsg(target, result)
-
 			}
 			// !+owner
 			if strings.HasPrefix(result, "!+owner ") {
@@ -229,6 +236,7 @@ func main() {
 			}
 			//!+aop
 			if strings.HasPrefix(result, "!+aop ") {
+
 				lines, err := readLines("aop.txt")
 				if err != nil {
 					return
@@ -248,11 +256,19 @@ func main() {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 				}
+				lines = delete_empty(lines)
+				if err := writeLines(lines, "aop.txt"); err != nil {
+					return
+				}
 			}
 			//!-aop
 			if strings.HasPrefix(result, "!-aop ") {
 				lines, err := readLines("aop.txt")
 				if err != nil {
+					return
+				}
+				lines = delete_empty(lines)
+				if err := writeLines(lines, "aop.txt"); err != nil {
 					return
 				}
 				isOp := lines
@@ -293,6 +309,7 @@ func main() {
 				if err != nil {
 					return
 				}
+
 				isShit := lines
 
 				result := strings.TrimPrefix(result, "!+shit ")
@@ -304,9 +321,17 @@ func main() {
 						ircobj.Notice(e.Nick, "Something wrong with shit.txt")
 					}
 					defer f.Close()
-					if _, err := f.WriteString("\n" + result); err != nil {
+					if _, err := f.WriteString(result + "\n"); err != nil {
 						ircobj.Notice(e.Nick, "Something wrong with shit.txt")
 					}
+				}
+				lines2, err := readLines("shit.txt")
+				if err != nil {
+					return
+				}
+				lines2 = delete_empty(lines2)
+				if err := writeLines(lines2, "shit.txt"); err != nil {
+					return
 				}
 			}
 			//!-shit
@@ -360,6 +385,7 @@ func main() {
 				ircobj.Privmsg(e.Nick, "!+b - ban usermask - !+b *!ident@host")
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!-b - unban usermask - !-b *!ident@host")
+				ircobj.Privmsg(e.Nick, "!k nick - kick nick")
 				ircobj.Privmsg(e.Nick, "!j #channel - joining #channel")
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!p #channel - part channel ")
@@ -367,16 +393,16 @@ func main() {
 				ircobj.Privmsg(e.Nick, "!msg nick text - send priv msg to nick")
 				ircobj.Privmsg(e.Nick, "!s text - say text to current channel")
 				time.Sleep(1 * time.Second)
-				ircobj.Privmsg(e.Nick, "!+owner add owner to bot")
-				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot")
+				ircobj.Privmsg(e.Nick, "!+owner add owner to bot, *!ident@host")
+				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot, *!ident@host")
 				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
 				ircobj.Privmsg(e.Nick, "!owners - notice owners list")
 				time.Sleep(1 * time.Second)
-				ircobj.Privmsg(e.Nick, "!+aop -add autoop: !+aop #channel !ident@host")
-				ircobj.Privmsg(e.Nick, "!-aop -del autoop: !-aop #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!+aop -add autoop: !+aop #channel *!ident@host")
+				ircobj.Privmsg(e.Nick, "!-aop -del autoop: !-aop #channel *!ident@host")
 				ircobj.Privmsg(e.Nick, "!aops - aops list")
-				ircobj.Privmsg(e.Nick, "!+shit -add shit: !+shit #channel !ident@host")
-				ircobj.Privmsg(e.Nick, "!-shit -del shit: !-shit #channel !ident@host")
+				ircobj.Privmsg(e.Nick, "!+shit -add shit: !+shit #channel *!ident@host")
+				ircobj.Privmsg(e.Nick, "!-shit -del shit: !-shit #channel *!ident@host")
 				ircobj.Privmsg(e.Nick, "!shits - shit list")
 
 			}
@@ -389,10 +415,13 @@ func main() {
 func ReadConfig(filename string) (Config, error) {
 	// init with some bogus data
 	config := Config{
-		"secretChan": "",
 		"server":     "",
 		"port":       "",
-		"owner":      "",
+		"secretChan": "",
+		"ident":      "",
+		"botnick":    "",
+		"realname":   "",
+		"myhost":     "",
 	}
 	if len(filename) == 0 {
 		return config, nil
@@ -495,3 +524,7 @@ func delete_empty(s []string) []string {
 	}
 	return r
 }
+// Split function for future use.
+//func Split(r rune) bool {
+//	return r == '!' || r == '@'
+//}
