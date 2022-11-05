@@ -177,7 +177,7 @@ func main() {
 				ircobj.Kick(result, curChan, "Not welcome here!")
 			}
 			// !a command
-			if strings.HasPrefix(result, "!a") {
+			if strings.HasPrefix(result, "!hi") {
 				ircobj.Notice(e.Nick, "Welcome my master!")
 			}
 			// !msg command
@@ -396,7 +396,7 @@ func main() {
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!+owner add owner to bot, *!ident@host")
 				ircobj.Privmsg(e.Nick, "!-owner delte owner from bot, *!ident@host")
-				ircobj.Privmsg(e.Nick, "!a - bot says hallo to You")
+				ircobj.Privmsg(e.Nick, "!hi - bot says hallo to You")
 				ircobj.Privmsg(e.Nick, "!owners - notice owners list")
 				time.Sleep(1 * time.Second)
 				ircobj.Privmsg(e.Nick, "!+aop -add autoop: !+aop #channel *!ident@host")
