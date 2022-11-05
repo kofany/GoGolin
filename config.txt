@@ -1,7 +1,8 @@
-# GoGolin v 0.5 config file
- server = irc.server.com
- port = 6667
- secretChan = #secretChannel
- ident = botident
- botnick = botnick
- realname = botrealname
+# GoGolin v1.0 config file
+server = irc.server.com
+port = 6667
+secretChan = #yourchannel
+ident = botident
+botnick = botnick
+realname = botrealname
+myhost = ip_witch_want_to_use
