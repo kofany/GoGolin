@@ -1,5 +1,5 @@
-github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64 h1:l/T7dYuJEQZOwVOpjIXr1180aM9PZL/d1MnMVIxefX4=
-github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64/go.mod h1:Q1NAJOuRdQCqN/VIWdnaaEhV8LpeO2rtlBP7/iDJNII=
+github.com/kofany/go-ircevent v0.0.0-20221102210251-6de4913f24d4 h1:eZj7FkrNL84rtFVGl+aZjOnLHAnjYxIzB6bS77v0lDg=
+github.com/kofany/go-ircevent v0.0.0-20221102210251-6de4913f24d4/go.mod h1:jLTZ6WBLG226Axc2gmMqxooBdh2GXZBALYfUMZFahBA=
 golang.org/x/exp v0.0.0-20221004215720-b9f4876ce741 h1:fGZugkZk2UgYBxtpKmvub51Yno1LJDeEsRp2xGD+0gY=
 golang.org/x/exp v0.0.0-20221004215720-b9f4876ce741/go.mod h1:cyybsKvd6eL0RnXn6p/Grxp8F5bW7iYuBgsNCOHpMYE=
 golang.org/x/net v0.0.0-20210614182718-04defd469f4e h1:XpT3nA5TvE525Ne3hInMh6+GETgn27Zfm9dxsThnX2Q=
