@@ -61,7 +61,7 @@ My Commands:
 
 !-owner delte owner from bot, *!ident@host
 
-!a - bot says hallo to You
+!hi - bot says hallo to You
 
 !owners - notice owners list
 
