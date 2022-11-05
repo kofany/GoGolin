@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -15,8 +16,16 @@ import (
 
 type Config map[string]string
 
-func main() {
+var ownerfile string = "owner.txt"
+var aopfile string = "aop.txt"
+var shitfile string = "shit.txt"
+var configfile string = "config.txt"
 
+func main() {
+	createConfig(configfile)
+	createOwner(ownerfile)
+	createAS(aopfile)
+	createAS(shitfile)
 	//config
 	config, err := ReadConfig(`config.txt`)
 	if err != nil {
@@ -32,7 +41,7 @@ func main() {
 	ircobj := irc.IRC(botnick, ident, myhost)
 	ircobj.PingFreq = 1 * time.Minute
 	ircobj.RealName = config["realname"]
-	ircobj.Version = "GoGolin v 1.0 - irc client in Go"
+	ircobj.Version = "GoGolin v 1.1 - irc client in Go"
 	errCon := ircobj.Connect(server + ":" + port)
 	if errCon != nil {
 		fmt.Println("Failed connecting")
@@ -253,16 +262,16 @@ func main() {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 					defer f.Close()
-					if _, err := f.WriteString(result + "\n"); err != nil {
+					if _, err := f.WriteString("\n" + result); err != nil {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 				}
-				lines2, err := readLines("shit.txt")
+				lines2, err := readLines("aop.txt")
 				if err != nil {
 					return
 				}
 				lines2 = delete_empty(lines2)
-				if err := writeLines(lines2, "shit.txt"); err != nil {
+				if err := writeLines(lines2, "aop.txt"); err != nil {
 					return
 				}
 			}
@@ -427,6 +436,7 @@ func ReadConfig(filename string) (Config, error) {
 		"botnick":    "",
 		"realname":   "",
 		"myhost":     "",
+		"permowner":  "",
 	}
 	if len(filename) == 0 {
 		return config, nil
@@ -530,7 +540,196 @@ func delete_empty(s []string) []string {
 	return r
 }
 
+func isError(err error) bool {
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return (err != nil)
+}
+func createAS(filepath string) {
+	// check if file exists
+	var _, err = os.Stat(filepath)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(filepath)
+
+		if isError(err) {
+			return
+		}
+		defer file.Close()
+
+		var writefile, err2 = os.OpenFile(filepath, os.O_RDWR, 0644)
+		if isError(err2) {
+			return
+		}
+		defer writefile.Close()
+
+		// Write some text line-by-line to file.
+		_, err2 = writefile.WriteString("#channel *!ident@host")
+		if isError(err2) {
+			return
+		}
+		err = writefile.Sync()
+		if isError(err) {
+			return
+		}
+		fmt.Println("File Created Successfully", filepath)
+	}
+}
+
+func writeFile(name string, text string) {
+	// Open file using READ & WRITE permission.
+	var file, err = os.OpenFile(name, os.O_RDWR, 0644)
+	if isError(err) {
+		return
+	}
+	defer file.Close()
+
+	// Write some text line-by-line to file.
+	_, err = file.WriteString(text)
+	if isError(err) {
+		return
+	}
+
+	// Save file changes.
+	err = file.Sync()
+	if isError(err) {
+		return
+	}
+}
+
+func createOwner(name string) {
+	// check if file exists
+	var _, err = os.Stat(name)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(name)
+		if isError(err) {
+			return
+		}
+		defer file.Close()
+		var firstowner string = ""
+		fmt.Println("Enter owner host (*!ident@host)")
+		fmt.Scan(&firstowner)
+		writeFile(name, firstowner)
+
+		fmt.Println("File Created Successfully", name)
+	}
+
+}
+func getIP() {
+	foo, err := net.InterfaceAddrs()
+
+	if err == nil {
+		for _, v := range foo {
+			fmt.Println(v)
+
+		}
+	}
+}
+func createConfig(name string) {
+	// check if file exists
+	var _, err = os.Stat(name)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(name)
+		if isError(err) {
+			return
+		}
+		defer file.Close()
+		var cServer string = "server = "
+		var cPort string = "port = "
+		var cSecret string = "secretChan = "
+		var cIdent string = "ident = "
+		var cBotNick string = "botnick = "
+		var cRealName string = "realname = "
+		var cMyhost string = "myhost = "
+		var iServer string = ""
+		var iPort string = ""
+		var iSecret string = ""
+		var iIdent string = ""
+		var iBotNick string = ""
+		var iMyhost string = ""
+
+		fmt.Println("I see that config.txt is not there, let's create one.")
+
+		fmt.Println("Enter irc server ip or hostname")
+		fmt.Scan(&iServer)
+
+		fmt.Println("Enter irc server port")
+		fmt.Scan(&iPort)
+
+		fmt.Println("Enter secret channel name eg. #channel")
+		fmt.Scan(&iSecret)
+
+		fmt.Println("Enter ident (shell login)")
+		fmt.Scan(&iIdent)
+
+		fmt.Println("Enter botnick")
+		fmt.Scan(&iBotNick)
+
+		fmt.Println("Enter bot realname")
+		inputReader := bufio.NewReader(os.Stdin)
+		iRealName, _ := inputReader.ReadString('\n')
+		time.Sleep(2 * time.Second)
+		getIP()
+		time.Sleep(2 * time.Second)
+		fmt.Println("Enter ip to use with connection (vhost ip)")
+		fmt.Scan(&iMyhost)
+
+		var conffile, errc = os.OpenFile(name, os.O_RDWR, 0644)
+		if isError(errc) {
+			return
+		}
+		defer conffile.Close()
+
+		// Write some text line-by-line to file.
+		_, errc = conffile.WriteString(cServer + iServer + "\n")
+		if isError(errc) {
+			return
+		}
+		_, errc = conffile.WriteString(cPort + iPort + "\n")
+		if isError(errc) {
+			return
+		}
+		_, errc = conffile.WriteString(cSecret + iSecret + "\n")
+		if isError(errc) {
+			return
+		}
+		_, errc = conffile.WriteString(cIdent + iIdent + "\n")
+		if isError(errc) {
+			return
+		}
+		_, errc = conffile.WriteString(cBotNick + iBotNick + "\n")
+		if isError(errc) {
+			return
+		}
+		_, errc = conffile.WriteString(cRealName + iRealName)
+		if isError(errc) {
+			return
+		}
+		_, errc = conffile.WriteString(cMyhost + iMyhost + "\n")
+		if isError(errc) {
+			return
+		}
+
+		// Save file changes.
+		errc = conffile.Sync()
+		if isError(errc) {
+			return
+		}
+
+		fmt.Println("File Created Successfully", name)
+
+	}
+
+}
+
 // Split function for future use.
 //func Split(r rune) bool {
 //	return r == '!' || r == '@'
-//}
+//
