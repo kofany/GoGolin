@@ -262,7 +262,7 @@ func main() {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 					defer f.Close()
-					if _, err := f.WriteString("\n" + result); err != nil {
+					if _, err := f.WriteString(result + "\n"); err != nil {
 						ircobj.Notice(e.Nick, "Something wrong with aop.txt")
 					}
 				}
@@ -567,7 +567,7 @@ func createAS(filepath string) {
 		defer writefile.Close()
 
 		// Write some text line-by-line to file.
-		_, err2 = writefile.WriteString("#channel *!ident@host")
+		_, err2 = writefile.WriteString("#channel *!ident@host \n")
 		if isError(err2) {
 			return
 		}
