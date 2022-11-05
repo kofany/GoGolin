@@ -2,10 +2,17 @@
 Simple irc bot reacting to !commands and written in Go
 
 # Info
+
+Bot will create files if there not exists
+
 owner.txt - here bot stores owners hosts
+
 shit.txt - here bot stores shit list
+
 aop.txt - here bot stores aop list
+
 config.txt - here bot stores config 
+
 
 # Config
 
