@@ -1,1 +1,1 @@
-#channel !ident@host
+#channel *!ident@host
